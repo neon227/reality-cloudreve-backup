@@ -1940,6 +1940,7 @@ readDomain()
     domain_config_list+=("$domain_config")
     pretend_list+=("$pretend")
 }
+
 install_nginx_compile_toolchains()
 {
     green "正在安装Nginx编译工具链。。。"
@@ -2024,6 +2025,7 @@ install_web_dependence()
         fi
     fi
 }
+
 #编译&&安装php
 compile_php()
 {
@@ -2108,6 +2110,7 @@ install_php_part2()
     sed -i 's/^[ \t]*listen[ \t]*=/;&/g' ${php_prefix}/etc/php-fpm.d/www.conf
     sed -i 's/^[ \t]*env\[PATH\][ \t]*=/;&/g' ${php_prefix}/etc/php-fpm.d/www.conf
 cat >> ${php_prefix}/etc/php-fpm.d/www.conf << EOF
+
 listen = /dev/shm/php-fpm/php-fpm.sock
 pm = dynamic
 pm.max_children = $((16*cpu_thread_num))
@@ -2119,14 +2122,17 @@ EOF
     rm -rf "${php_prefix}/etc/php.ini"
     cp "${php_prefix}/php.ini-production" "${php_prefix}/etc/php.ini"
 cat >> ${php_prefix}/etc/php.ini << EOF
+
 [PHP]
 extension=imagick.so
 zend_extension=opcache.so
 opcache.enable=1
 date.timezone=$timezone
+
 ;如果使用mysql，并且使用unix domain socket方式连接，请正确设置以下内容
 ;pdo_mysql.default_socket=/var/run/mysqld/mysqld.sock
 ;mysqli.default_socket=/var/run/mysqld/mysqld.sock
+
 memory_limit=-1
 post_max_size=0
 upload_max_filesize=9223372036854775807
@@ -2138,6 +2144,7 @@ session.auto_start=0
 EOF
     install -m 644 "${php_prefix}/php-fpm.service.default" $php_service
 cat >> $php_service <<EOF
+
 [Service]
 ProtectSystem=false
 ExecStartPre=/bin/rm -rf /dev/shm/php-fpm
@@ -2195,6 +2202,7 @@ cat > $nginx_service << EOF
 Description=The NGINX HTTP and reverse proxy server
 After=syslog.target network-online.target remote-fs.target nss-lookup.target
 Wants=network-online.target
+
 [Service]
 Type=forking
 User=root
@@ -2207,6 +2215,7 @@ ExecStart=${nginx_prefix}/sbin/nginx
 ExecStop=${nginx_prefix}/sbin/nginx -s stop
 ExecStopPost=/bin/rm -rf /dev/shm/nginx
 PrivateTmp=true
+
 [Install]
 WantedBy=multi-user.target
 EOF
@@ -2330,6 +2339,7 @@ install_update_xray()
     fi
     if ! grep -q "# This file has been edited by Xray-TLS-Web setup script" /etc/systemd/system/xray.service; then
 cat >> /etc/systemd/system/xray.service <<EOF
+
 # This file has been edited by Xray-TLS-Web setup script
 [Service]
 ExecStartPre=/bin/rm -rf /dev/shm/xray
@@ -2395,50 +2405,69 @@ get_all_certs()
 config_nginx_init()
 {
 cat > ${nginx_prefix}/conf/nginx.conf <<EOF
+
 user  root root;
 worker_processes  auto;
+
 #error_log  logs/error.log;
 #error_log  logs/error.log  notice;
 #error_log  logs/error.log  info;
+
 #pid        logs/nginx.pid;
 google_perftools_profiles /dev/shm/nginx/tcmalloc/tcmalloc;
+
 events {
     worker_connections  1024;
 }
+
+
 http {
     include       mime.types;
     default_type  application/octet-stream;
+
     #log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
     #                  '\$status \$body_bytes_sent "\$http_referer" '
     #                  '"\$http_user_agent" "\$http_x_forwarded_for"';
+
     #access_log  logs/access.log  main;
+
     sendfile        on;
     #tcp_nopush     on;
+
     #keepalive_timeout  0;
     keepalive_timeout  65;
+
     #gzip  on;
+
     include       $nginx_config;
     #server {
         #listen       80;
         #server_name  localhost;
+
         #charset koi8-r;
+
         #access_log  logs/host.access.log  main;
+
         #location / {
         #    root   html;
         #    index  index.html index.htm;
         #}
+
         #error_page  404              /404.html;
+
         # redirect server error pages to the static page /50x.html
         #
         #error_page   500 502 503 504  /50x.html;
         #location = /50x.html {
         #    root   html;
         #}
+
         # proxy the PHP scripts to Apache listening on 127.0.0.1:80
         #
         #location ~ \\.php\$ {
         #    proxy_pass   http://127.0.0.1;
         #}
+
         # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
         #
         #location ~ \\.php\$ {
@@ -2448,6 +2477,7 @@ http {
         #    fastcgi_param  SCRIPT_FILENAME  /scripts\$fastcgi_script_name;
         #    include        fastcgi_params;
         #}
+
         # deny access to .htaccess files, if Apache's document root
         # concurs with nginx's one
         #
@@ -2455,33 +2485,43 @@ http {
         #    deny  all;
         #}
     #}
+
+
     # another virtual host using mix of IP-, name-, and port-based configuration
     #
     #server {
     #    listen       8000;
     #    listen       somename:8080;
     #    server_name  somename  alias  another.alias;
+
     #    location / {
     #        root   html;
     #        index  index.html index.htm;
     #    }
     #}
+
+
     # HTTPS server
     #
     #server {
     #    listen       443 ssl;
     #    server_name  localhost;
+
     #    ssl_certificate      cert.pem;
     #    ssl_certificate_key  cert.key;
+
     #    ssl_session_cache    shared:SSL:1m;
     #    ssl_session_timeout  5m;
+
     #    ssl_ciphers  HIGH:!aNULL:!MD5;
     #    ssl_prefer_server_ciphers  on;
+
     #    location / {
     #        root   html;
     #        index  index.html index.htm;
     #    }
     #}
+
 }
 EOF
 }
@@ -2821,6 +2861,7 @@ Documentation=https://docs.cloudreve.org
 After=network.target
 After=mysqld.service
 Wants=network.target
+
 [Service]
 WorkingDirectory=$cloudreve_prefix
 ExecStartPre=/bin/rm -rf /dev/shm/cloudreve
@@ -2831,8 +2872,10 @@ ExecStopPost=/bin/rm -rf /dev/shm/cloudreve
 Restart=on-abnormal
 RestartSec=5s
 KillMode=mixed
+
 StandardOutput=null
 StandardError=syslog
+
 [Install]
 WantedBy=multi-user.target
 EOF
